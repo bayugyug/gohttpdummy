@@ -28,10 +28,10 @@ RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && \
     chmod -R 777 "$GOPATH" && \
     mkdir -p $GOSRC/github.com/bayugyug && \
     cd $GOSRC/github.com/bayugyug && \
-    git clone https://github.com/bayugyug/godummyhttp.git && \
-    cd $GOSRC/github.com/bayugyug/godummyhttp && \
+    git clone https://github.com/bayugyug/gohttpdummy.git && \
+    cd $GOSRC/github.com/bayugyug/gohttpdummy && \
     go get -v && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -v -ldflags "-s -w -X main.pBuildTime=`date -u +%Y%m%d.%H%M%S`" . && \
-    cp -f godummyhttp $GOBIN/ && \
+    cp -f gohttpdummy $GOBIN/ && \
     chmod +x $GOBIN/* && \
     apk del .build-deps go git gcc musl-dev && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/ &&  \
@@ -41,4 +41,4 @@ RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && \
     du -sh /go/* /*
 
 #main entry
-ENTRYPOINT [ "/go/bin/godummyhttp" ]
+ENTRYPOINT [ "/go/bin/gohttpdummy" ]

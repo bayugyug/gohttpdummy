@@ -16,14 +16,14 @@ RUN apt-get update  -y && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p $GOPATH/bin  $GOSRC/github.com/bayugyug && \
     cd $GOSRC/github.com/bayugyug && \
-    git clone https://github.com/bayugyug/godummyhttp.git && \
-    cd $GOSRC/github.com/bayugyug/godummyhttp && \
+    git clone https://github.com/bayugyug/gohttpdummy.git && \
+    cd $GOSRC/github.com/bayugyug/gohttpdummy && \
     go get -v && go build -tags netgo -installsuffix netgo -installsuffix cgo -v -ldflags "-s -w -X main.pBuildTime=`date -u +%Y%m%d.%H%M%S`" . && \
-    cd $GOSRC && go install github.com/bayugyug/godummyhttp && \
-    cd $GOSRC/github.com/bayugyug/godummyhttp && \ 
+    cd $GOSRC && go install github.com/bayugyug/gohttpdummy && \
+    cd $GOSRC/github.com/bayugyug/gohttpdummy && \ 
     cp -f Docker/cleanup.sh $GOPATH/bin/ && \
     chmod +x $GOPATH/bin/* && \
     $GOPATH/bin/cleanup.sh
 
 #main entry
-ENTRYPOINT ["godummyhttp"]
+ENTRYPOINT ["gohttpdummy"]

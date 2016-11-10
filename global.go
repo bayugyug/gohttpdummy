@@ -119,7 +119,7 @@ func initEnvParams() {
 
 	flag.Parse()
 
-	if pReqTotal <= 0 || pReqConcurrent <= 0 || pReqConcurrent > pReqTotal || len(os.Args) <= 1 {
+	if len(os.Args) < 2 || pReqTotal <= 0 || pReqConcurrent <= 0 || pReqConcurrent > pReqTotal || len(os.Args) <= 1 {
 		showMessage()
 	}
 	//last param is URL
