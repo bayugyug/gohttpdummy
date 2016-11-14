@@ -63,9 +63,11 @@ func process(doneFlg chan bool, wg *sync.WaitGroup, method, url string) {
 	pAppData.Millis += int64(t1.Nanoseconds()/1000) / int64(1000)
 
 	if statuscode != 200 || statusdesc == "" {
-		pAppData.Summary["failed"]++
+		pAppData.Summary["Failed"]++
+		pStats.setStats("Failed")
 	} else {
-		pAppData.Summary["success"]++
+		pAppData.Summary["Success"]++
+		pStats.setStats("Success")
 	}
 	//send signal -> DONE
 	doneFlg <- true

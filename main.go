@@ -40,13 +40,14 @@ Statistics :
 	}
 	fmt.Println("Document Path  :", pAppData.URLInfo.Path)
 	fmt.Println()
-	for k, v := range pAppData.Summary {
-		fmt.Println(strings.ToUpper(k), ":", v)
+	slist := pStats.getStatsList()
+	for k, v := range slist {
+		fmt.Println(strings.TrimSpace(k), ":", v)
 	}
 	t1 := time.Since(t0)
 	pAppData.Elapsed = int64(t1.Nanoseconds()/1000) / int64(1000)
 	fmt.Println("Elapsed :", pAppData.Elapsed, "millisecs")
-	fmt.Println("Requests:", (float64(pAppData.Requests)*float64(1000))/float64(pAppData.Elapsed), " ( transactions per second )")
+	fmt.Println("Requests:", fmt.Sprintf("%.04f", (float64(pAppData.Requests)*float64(1000))/float64(pAppData.Elapsed)), " ( # per sec )")
 
 	os.Exit(0)
 }
