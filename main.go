@@ -48,6 +48,5 @@ Statistics :
 	pAppData.Elapsed = int64(t1.Nanoseconds()/1000) / int64(1000)
 	fmt.Println("Elapsed :", pAppData.Elapsed, "millisecs")
 	fmt.Println("Requests:", fmt.Sprintf("%.04f", (float64(pAppData.Requests)*float64(1000))/float64(pAppData.Elapsed)), " ( # per sec )")
-
 	os.Exit(0)
 }
