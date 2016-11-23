@@ -16,6 +16,7 @@ import (
 
 func b(s string) *bufio.Reader { return bufio.NewReader(strings.NewReader(s)) }
 
+//handle main entry
 func handle() {
 
 	uFlag := make(chan bool)
@@ -31,6 +32,39 @@ func handle() {
 	}
 	uwg.Wait()
 	close(uFlag)
+}
+
+//showSummary list all the results statistics
+func showSummary(t0 time.Time) {
+	//elapsed
+	msg := `
+
+Version ` + pVersion + `
+
+Benchmarking is now in progress .... 
+
+Please be patient!
+
+Statistics :
+`
+	fmt.Println(msg)
+	fmt.Println()
+	h := strings.SplitN(pAppData.URLInfo.Host, ":", 2)
+	fmt.Println("Server Hostname:", h[0])
+	if len(h) > 1 {
+		fmt.Println("Server Port    :", h[1])
+	}
+	fmt.Println("Document Path  :", pAppData.URLInfo.Path)
+	fmt.Println()
+	slist := pStats.getStatsList()
+	for k, v := range slist {
+		fmt.Println(strings.TrimSpace(k), ": ", v)
+	}
+	t1 := time.Since(t0)
+	pAppData.Elapsed = int64(t1.Nanoseconds()/1000) / int64(1000)
+	fmt.Println("Elapsed : ", pAppData.Elapsed, "millisecs")
+	fmt.Println("Requests: ", fmt.Sprintf("%.04f", (float64(pAppData.Requests)*float64(1000))/float64(pAppData.Elapsed)), " ( # per sec )")
+	fmt.Println("Sys Time: ", time.Since(t0))
 }
 
 //process
@@ -72,16 +106,11 @@ func process(doneFlg chan bool, wg *sync.WaitGroup, method, url string) {
 
 //getResult http req a url
 func getResult(url string) (int, string) {
-	var timeout time.Duration
-	timeout = 120
-	if pReqTimeout > 0 {
-		timeout = time.Duration(pReqTimeout)
-	}
 	//client
 	c := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true, RootCAs: pool},
 		Dial: (&net.Dialer{
-			Timeout: timeout * time.Second,
+			Timeout: getTimeoutCfg() * time.Second,
 		}).Dial,
 		//DisableKeepAlives: true,
 	},
@@ -107,16 +136,11 @@ func getResult(url string) (int, string) {
 
 //postResult
 func postResult(uri string, fparams map[string]string) (int, string) {
-	var timeout time.Duration
-	timeout = 120
-	if pReqTimeout > 0 {
-		timeout = time.Duration(pReqTimeout)
-	}
 	//client
 	c := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true, RootCAs: pool},
 		Dial: (&net.Dialer{
-			Timeout: timeout * time.Second,
+			Timeout: getTimeoutCfg() * time.Second,
 		}).Dial,
 		//DisableKeepAlives: true,
 	},
@@ -148,4 +172,14 @@ func postResult(uri string, fparams map[string]string) (int, string) {
 	}
 	//give
 	return res.StatusCode, string(body)
+}
+
+//getTimeoutCfg get timeout settings
+func getTimeoutCfg() time.Duration {
+	var timeout time.Duration
+	timeout = 120
+	if pReqTimeout > 0 {
+		timeout = time.Duration(pReqTimeout)
+	}
+	return timeout
 }

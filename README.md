@@ -26,7 +26,6 @@
 $ ./gohttpdummy
 
 
-
 Version 0.1.0-0
 
 Usage: gohttpdummy [options] [http[s]://]hostname[:port]/path
