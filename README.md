@@ -12,7 +12,7 @@
 
 ```sh
 
-     git clone https://github.com/bayugyug/gohttpdummy .git && cd gohttpdummy
+     git clone https://github.com/bayugyug/gohttpdummy.git && cd gohttpdummy
 
      git pull && make 
 
