@@ -38,32 +38,7 @@ Usage: gohttpdummy [options] [http[s]://]hostname[:port]/path
         *** Example: (GET)
 
 
-                $  ./gohttpdummy -c 10 -r 500  'http://192.168.2.121:7777/parasql/?p=GAME_ACTION'
-
-                    Version 0.1.0-0
-
-                    Benchmarking is now in progress ....
-
-                    Please be patient!
-
-                    Statistics :
-
-
-                    Server Hostname: 192.168.2.121
-                    Server Port    : 7777
-                    Document Path  : /parasql/
-
-                    Success :  500
-                    Elapsed :  1309.107836 ( millisecs )
-                    Requests:  381.939506  ( # per sec )
-                    App Time:  1.309107836s
-                    Sys Time:  1.309200187s
-
-
-        *** Example: (POST)
-
-
-                $ ./gohttpdummy -c 10 -r 50  -d "m=aguy&r=dabis&t=hehehe&data=mundo" -m "POST" 'http://192.168.2.121:7777/parasql'
+               $ ./gohttpdummy -c 10 -r 100 'http://192.168.2.121:7777/parasql'
 
 
                     Version 0.1.0-0
@@ -79,11 +54,37 @@ Usage: gohttpdummy [options] [http[s]://]hostname[:port]/path
                     Server Port    : 7777
                     Document Path  : /parasql
 
-                    Success :  50
-                    Elapsed :  100.263404 ( millisecs )
-                    Requests:  498.686440 ( # per sec )
-                    App Time:  100.263404ms
-                    Sys Time:  100.998003ms
+                    Success :  100
+                    Elapsed :  180.850708 ( millisecs )
+                    Requests:  552.942264 ( # per sec )
+                    App Time:  180.850708ms
+                    Sys Time:  181.451422ms
+
+
+        *** Example: (POST)
+
+
+                $ ./gohttpdummy -c 10 -r 100  -d "m=aguy&r=dabis&t=hehehe&data=mundo" -m "POST" 'http://192.168.2.121:7777/parasql'
+
+
+                    Version 0.1.0-0
+
+                    Benchmarking is now in progress ....
+
+                    Please be patient!
+
+                    Statistics :
+
+
+                    Server Hostname: 192.168.2.121
+                    Server Port    : 7777
+                    Document Path  : /parasql
+
+                    Success :  100
+                    Elapsed :  143.176534 ( millisecs )
+                    Requests:  698.438475 ( # per sec )
+                    App Time:  143.176534ms
+                    Sys Time:  143.974794ms
 
 
 ```

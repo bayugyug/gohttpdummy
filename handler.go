@@ -83,19 +83,19 @@ func process(doneFlg chan bool, wg *sync.WaitGroup, method, url string) {
 		}
 	}()
 	var statuscode int
-	var statusdesc string
 
 	t0 := time.Now()
 	if method == "GET" {
-		statuscode, statusdesc = getResult(url)
+		statuscode = getResult(url)
 	} else {
-		statuscode, statusdesc = postResult(url, pFormData)
+		statuscode = postResult(url, pFormData)
 	}
 	//calc
 	t1 := time.Since(t0)
 	pAppData.Millis += int64(t1.Nanoseconds()/1000) / int64(1000)
 
-	if statuscode != 200 || statusdesc == "" {
+	//http.StatusText(statuscode)
+	if statuscode != http.StatusOK {
 		pStats.setStats("Failed")
 	} else {
 		pStats.setStats("Success")
@@ -105,7 +105,7 @@ func process(doneFlg chan bool, wg *sync.WaitGroup, method, url string) {
 }
 
 //getResult http req a url
-func getResult(url string) (int, string) {
+func getResult(url string) int {
 	//client
 	c := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true, RootCAs: pool},
@@ -115,27 +115,33 @@ func getResult(url string) (int, string) {
 		//DisableKeepAlives: true,
 	},
 	}
-	res, err := c.Get(url)
+
+	//init
+	var res *http.Response
+	var err error
+
+	//Get
+	res, err = c.Get(url)
 	//make sure to free-up
 	if res != nil {
 		defer res.Body.Close()
 	}
 	if err != nil {
 		log.Println("ERROR: getResult:", err)
-		return 0, ""
+		return 0
 	}
 	//get response
-	body, err := ioutil.ReadAll(res.Body)
+	_, err = ioutil.ReadAll(res.Body)
 	if err != nil {
 		log.Println("ERROR: getResult:", err)
-		return 0, ""
+		return 0
 	}
 	//give
-	return res.StatusCode, string(body)
+	return res.StatusCode
 }
 
 //postResult
-func postResult(uri string, form *url.Values) (int, string) {
+func postResult(uri string, form *url.Values) int {
 	//client
 	c := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true, RootCAs: pool},
@@ -145,29 +151,36 @@ func postResult(uri string, form *url.Values) (int, string) {
 		//DisableKeepAlives: true,
 	},
 	}
-	req, errs := http.NewRequest("POST", uri, strings.NewReader(form.Encode()))
-	if errs != nil {
-		fmt.Println("ERROR: postResult:", errs)
-		return 0, ""
+
+	//init
+	var req *http.Request
+	var res *http.Response
+	var err error
+
+	//Post
+	req, err = http.NewRequest("POST", uri, strings.NewReader(form.Encode()))
+	if err != nil {
+		fmt.Println("ERROR: postResult:", err)
+		return 0
 	}
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	res, errv := c.Do(req)
+	res, err = c.Do(req)
 	//make sure to free-up
 	if res != nil {
 		defer res.Body.Close()
 	}
-	if errv != nil {
-		log.Println("ERROR: postResult:", errv)
-		return 0, ""
-	}
-	//get response
-	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		log.Println("ERROR: postResult:", err)
-		return 0, ""
+		return 0
+	}
+	//get response
+	_, err = ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Println("ERROR: postResult:", err)
+		return 0
 	}
 	//give
-	return res.StatusCode, string(body)
+	return res.StatusCode
 }
 
 //getTimeoutCfg get timeout settings
