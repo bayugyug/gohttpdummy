@@ -8,17 +8,6 @@
 
 
 
-## Compile
-
-```sh
-
-     git clone https://github.com/bayugyug/gohttpdummy.git && cd gohttpdummy
-
-     git pull && make 
-
-```
-
-
 ## Usage
 
 ```sh
@@ -35,6 +24,8 @@ Usage: gohttpdummy [options] [http[s]://]hostname[:port]/path
 
   -c int
         concurrency  Number of multiple requests to make at a time (default 1)
+  -d string
+        form         Form data for POST method
   -m string
         method       Method to use during the http request (default "GET")
   -r int
@@ -42,7 +33,9 @@ Usage: gohttpdummy [options] [http[s]://]hostname[:port]/path
   -t int
         timeout      Seconds to max. wait for each response (default 60)
 
-        Example:
+
+
+        *** Example: (GET)
 
 
                 $  ./gohttpdummy -c 10 -r 500  'http://192.168.2.121:7777/parasql/?p=GAME_ACTION'
@@ -65,6 +58,33 @@ Usage: gohttpdummy [options] [http[s]://]hostname[:port]/path
                     Requests:  381.939506  ( # per sec )
                     App Time:  1.309107836s
                     Sys Time:  1.309200187s
+
+
+        *** Example: (POST)
+
+
+                $ ./gohttpdummy -c 10 -r 50  -d "m=aguy&r=dabis&t=hehehe&data=mundo" -m "POST" 'http://192.168.2.121:7777/parasql'
+
+
+                    Version 0.1.0-0
+
+                    Benchmarking is now in progress ....
+
+                    Please be patient!
+
+                    Statistics :
+
+
+                    Server Hostname: 192.168.2.121
+                    Server Port    : 7777
+                    Document Path  : /parasql
+
+                    Success :  50
+                    Elapsed :  100.263404 ( millisecs )
+                    Requests:  498.686440 ( # per sec )
+                    App Time:  100.263404ms
+                    Sys Time:  100.998003ms
+
 
 ```
 

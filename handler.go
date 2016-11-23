@@ -89,8 +89,7 @@ func process(doneFlg chan bool, wg *sync.WaitGroup, method, url string) {
 	if method == "GET" {
 		statuscode, statusdesc = getResult(url)
 	} else {
-		fparams := make(map[string]string)
-		statuscode, statusdesc = postResult(url, fparams)
+		statuscode, statusdesc = postResult(url, pFormData)
 	}
 	//calc
 	t1 := time.Since(t0)
@@ -136,7 +135,7 @@ func getResult(url string) (int, string) {
 }
 
 //postResult
-func postResult(uri string, fparams map[string]string) (int, string) {
+func postResult(uri string, form *url.Values) (int, string) {
 	//client
 	c := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true, RootCAs: pool},
@@ -145,10 +144,6 @@ func postResult(uri string, fparams map[string]string) (int, string) {
 		}).Dial,
 		//DisableKeepAlives: true,
 	},
-	}
-	form := &url.Values{}
-	for xk, xv := range fparams {
-		form.Add(xk, xv)
 	}
 	req, errs := http.NewRequest("POST", uri, strings.NewReader(form.Encode()))
 	if errs != nil {

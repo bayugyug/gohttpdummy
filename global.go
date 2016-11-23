@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -17,6 +18,7 @@ const (
 	usageReqTotal      = "requests     Number of requests to perform"
 	usageReqConcurrent = "concurrency  Number of multiple requests to make at a time"
 	usageReqTimeout    = "timeout      Seconds to max. wait for each response"
+	usageReqForm       = "form         Form data for POST method"
 )
 
 type AppData struct {
@@ -62,8 +64,10 @@ var (
 	pReqConcurrent = 1
 	pReqTimeout    = 60
 	pReqURI        = ""
+	pPostData      = ""
 
-	pAppData *AppData
+	pAppData  *AppData
+	pFormData *url.Values
 )
 
 type logOverride struct {
@@ -76,6 +80,8 @@ func init() {
 
 	pAppData = &AppData{Summary: make(map[string]int),
 		Method: pHTTPMethod}
+
+	pFormData = &url.Values{}
 	//evt
 	initEnvParams()
 
@@ -116,6 +122,7 @@ func initEnvParams() {
 	flag.IntVar(&pReqTotal, "r", pReqTotal, usageReqTotal)
 	flag.IntVar(&pReqConcurrent, "c", pReqConcurrent, usageReqConcurrent)
 	flag.IntVar(&pReqTimeout, "t", pReqTimeout, usageReqTimeout)
+	flag.StringVar(&pPostData, "d", pPostData, usageReqForm)
 
 	flag.Parse()
 
@@ -141,6 +148,17 @@ func initEnvParams() {
 	pAppData.Concurrent = pReqConcurrent
 	pAppData.Method = pHTTPMethod
 	pAppData.Requests = pReqTotal
+
+	//maybe have form-data
+	if pPostData != "" {
+		frm := strings.Split(pPostData, "&")
+		for _, v := range frm {
+			drow := strings.Split(v, "=")
+			if len(drow) == 2 {
+				pFormData.Set(drow[0], drow[1])
+			}
+		}
+	}
 }
 
 func showMessage() {
