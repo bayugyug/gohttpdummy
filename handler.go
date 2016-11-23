@@ -64,7 +64,7 @@ Statistics :
 	pAppData.Elapsed = int64(t1.Nanoseconds()/1000) / int64(1000)
 	fmt.Println("Elapsed : ", pAppData.Elapsed, "millisecs")
 	fmt.Println("Requests: ", fmt.Sprintf("%.04f", (float64(pAppData.Requests)*float64(1000))/float64(pAppData.Elapsed)), " ( # per sec )")
-	fmt.Println("Sys Time: ", time.Since(t0))
+	fmt.Println("Sys Time: ", time.Since(t0).String())
 }
 
 //process
