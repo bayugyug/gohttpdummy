@@ -45,25 +45,26 @@ Usage: gohttpdummy [options] [http[s]://]hostname[:port]/path
         Example:
 
 
-                $ ./gohttpdummy -c 5 -r 10 'http://127.0.0.1:7777/parasql/?a=values-a'
+                $  ./gohttpdummy -c 10 -r 500  'http://192.168.2.121:7777/parasql/?p=GAME_ACTION'
+
+                    Version 0.1.0-0
+
+                    Benchmarking is now in progress ....
+
+                    Please be patient!
+
+                    Statistics :
 
 
-                Version 0.1.0-0
+                    Server Hostname: 192.168.2.121
+                    Server Port    : 7777
+                    Document Path  : /parasql/
 
-                Benchmarking is now in progress ....
-
-                Please be patient!
-
-                Statistics :
-
-
-                Server Hostname: 127.0.0.1
-                Server Port    : 7777
-                Document Path  : /parasql/
-
-                SUCCESS : 10
-                Elapsed : 22 millisecs
-                Requests: 454.54545454545456  (# per seconds)
+                    Success :  500
+                    Elapsed :  1309.107836 ( millisecs )
+                    Requests:  381.939506  ( # per sec )
+                    App Time:  1.309107836s
+                    Sys Time:  1.309200187s
 
 ```
 

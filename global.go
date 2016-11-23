@@ -28,7 +28,7 @@ type AppData struct {
 	Timeout    int            `json:"timeout,omitempty"`
 	Summary    map[string]int `json:"summary,omitempty"`
 	Millis     int64          `json:"millis,omitempty"`
-	Elapsed    int64          `json:"elapsed,omitempty"`
+	Elapsed    float64        `json:"elapsed,omitempty"`
 }
 
 var (
