@@ -19,12 +19,8 @@ func StatsHelperNew() (n *StatsHelper) {
 func (s *StatsHelper) getStatsList() map[string]int {
 	s.locker.Lock()
 	defer s.locker.Unlock()
-	var statz = make(map[string]int)
-	statz = s.stats
-	if statz != nil {
-		return statz
-	}
-	return nil
+	statz := s.stats
+	return statz
 }
 
 func (s *StatsHelper) setStats(prefix string) {

@@ -61,7 +61,7 @@ Statistics :
 		fmt.Println(strings.TrimSpace(k), ": ", v)
 	}
 	t1 := time.Since(t0)
-	pAppData.Elapsed = float64(t1.Nanoseconds()) / 1000 / 1000
+	pAppData.Elapsed = float64(t1.Nanoseconds()) / 1000000 //millis = nanos / 1,000,000
 	fmt.Println("Elapsed : ", fmt.Sprintf("%.06f", pAppData.Elapsed), "( millisecs )")
 	fmt.Println("Requests: ", fmt.Sprintf("%.06f", (float64(pAppData.Requests)*float64(1000))/float64(pAppData.Elapsed)), "( # per sec )")
 	fmt.Println("App Time: ", t1.String())
