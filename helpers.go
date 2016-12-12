@@ -56,5 +56,5 @@ func randStr(strSize int) string {
 //timeElapsed display the time elapsed since t0
 func timeElapsed(start time.Time, name string) {
 	elapsed := time.Since(start)
-	fmt.Println(fmt.Sprintf("%s took %d ms", name, elapsed.Nanoseconds()/1000))
+	fmt.Println(fmt.Sprintf("%s took %d ms", name, elapsed.Nanoseconds()/1000/1000))
 }

@@ -6,7 +6,7 @@ import (
 
 //StatsHelper - are holder of summary
 type StatsHelper struct {
-	locker sync.RWMutex
+	locker sync.Mutex
 	stats  map[string]int
 }
 
@@ -19,27 +19,29 @@ func StatsHelperNew() (n *StatsHelper) {
 func (s *StatsHelper) getStatsList() map[string]int {
 	s.locker.Lock()
 	defer s.locker.Unlock()
-	if s.stats != nil {
-		return s.stats
+	var statz = make(map[string]int)
+	statz = s.stats
+	if statz != nil {
+		return statz
 	}
 	return nil
 }
 
 func (s *StatsHelper) setStats(prefix string) {
+	s.locker.Lock()
+	defer s.locker.Unlock()
 	if prefix == "" {
 		return
 	}
-	s.locker.Lock()
 	s.stats[prefix]++
-	s.locker.Unlock()
 }
 
 func (s *StatsHelper) getStats(prefix string) int {
+	s.locker.Lock()
+	defer s.locker.Unlock()
 	if prefix == "" {
 		return 0
 	}
-	s.locker.Lock()
 	m := s.stats[prefix]
-	s.locker.Unlock()
 	return m
 }
