@@ -138,10 +138,7 @@ func initEnvParams() {
 	//URL:&url.URL{Scheme:"https", Opaque:"", User:(*url.Userinfo)(nil), Host:"google.com:443", Path:"/search", RawPath:"", ForceQuery:false, RawQuery:"q=golang", Fragment:""}
 	var err error
 	pAppData.URLInfo, err = url.Parse(pReqURI)
-	if err != nil {
-		showMessage()
-	}
-	if pAppData.URLInfo.Scheme == "" || pAppData.URLInfo.Host == "" {
+	if pAppData.URLInfo, err = url.Parse(pReqURI); err != nil || pAppData.URLInfo.Scheme == "" || pAppData.URLInfo.Host == "" {
 		showMessage()
 	}
 	pAppData.URL = pReqURI

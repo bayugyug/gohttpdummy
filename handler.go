@@ -4,11 +4,13 @@ import (
 	"bufio"
 	"crypto/tls"
 	"fmt"
+	gor "github.com/gorilla/http"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -21,6 +23,9 @@ func handle() {
 
 	uFlag := make(chan bool)
 	uwg := new(sync.WaitGroup)
+
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	http.DefaultTransport.(*http.Transport).MaxIdleConnsPerHost = 10000
 
 	//go parsql.Save(uFlag, uwg)
 	for k := 0; k < pAppData.Requests; k++ {
@@ -55,6 +60,7 @@ Statistics :
 		fmt.Println("Server Port    :", h[1])
 	}
 	fmt.Println("Document Path  :", pAppData.URLInfo.Path)
+	fmt.Println("Request Method :", pAppData.Method)
 	fmt.Println()
 	slist := pStats.getStatsList()
 	for k, v := range slist {
@@ -86,9 +92,9 @@ func process(doneFlg chan bool, wg *sync.WaitGroup, method, url string) {
 
 	t0 := time.Now()
 	if method == "GET" {
-		statuscode = getResult(url)
+		statuscode = getResultFast(url)
 	} else {
-		statuscode = postResult(url, pFormData)
+		statuscode = postResultFast(url, pFormData)
 	}
 	//calc
 	t1 := time.Since(t0)
@@ -112,10 +118,10 @@ func getResult(url string) int {
 		Dial: (&net.Dialer{
 			Timeout: getTimeoutCfg() * time.Second,
 		}).Dial,
+		MaxIdleConnsPerHost: 10000,
 		//DisableKeepAlives: true,
 	},
 	}
-
 	//init
 	var res *http.Response
 	var err error
@@ -140,6 +146,62 @@ func getResult(url string) int {
 	return res.StatusCode
 }
 
+//getResultFast http req a url
+func getResultFast(url string) int {
+
+	//init
+	statRet, _, r, err := gor.DefaultClient.Get(url, nil)
+	if err != nil {
+		log.Println("ERROR: getResultFast:", err)
+		return 0
+	}
+	if r != nil {
+		defer r.Close()
+		/**
+		var body []byte
+			body, err = ioutil.ReadAll(r)
+			if err != nil {
+				log.Println("ERROR: getResultFast:", err)
+				return 0
+			}**/
+	}
+	//give
+	if !statRet.IsSuccess() {
+		log.Println("ERROR: getResultFast: Invalid status code", statRet.String())
+		return 0
+	}
+	return statRet.Code
+}
+
+//postResultFast http req a url
+func postResultFast(url string, form *url.Values) int {
+
+	//init
+	phdrs := make(map[string][]string)
+	pbody := strings.NewReader(form.Encode())
+	statRet, _, r, err := gor.DefaultClient.Post(url, phdrs, pbody)
+	if err != nil {
+		log.Println("ERROR: postResultFast:", err)
+		return 0
+	}
+	if r != nil {
+		defer r.Close()
+		/**
+		var body []byte
+			body, err = ioutil.ReadAll(r)
+			if err != nil {
+				log.Println("ERROR: getResultFast:", err)
+				return 0
+			}**/
+	}
+	//give
+	if !statRet.IsSuccess() {
+		log.Println("ERROR: postResultFast: Invalid status code", statRet.String())
+		return 0
+	}
+	return statRet.Code
+}
+
 //postResult
 func postResult(uri string, form *url.Values) int {
 	//client
@@ -149,6 +211,7 @@ func postResult(uri string, form *url.Values) int {
 			Timeout: getTimeoutCfg() * time.Second,
 		}).Dial,
 		//DisableKeepAlives: true,
+		MaxIdleConnsPerHost: 10000,
 	},
 	}
 
