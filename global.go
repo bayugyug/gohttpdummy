@@ -19,6 +19,7 @@ const (
 	usageReqConcurrent = "concurrency  Number of multiple requests to make at a time"
 	usageReqTimeout    = "timeout      Seconds to max. wait for each response"
 	usageReqForm       = "form         Form data for POST method"
+	usageRemoteURL     = "url          Remote address"
 )
 
 type AppData struct {
@@ -65,9 +66,12 @@ var (
 	pReqTimeout    = 60
 	pReqURI        = ""
 	pPostData      = ""
+	pRemoteURL     = ""
 
 	pAppData  *AppData
 	pFormData *url.Values
+
+	pTunnelURL chan string
 )
 
 type logOverride struct {
@@ -134,7 +138,6 @@ func initEnvParams() {
 	if ok, _ := regexp.MatchString("^http(s)?://", pReqURI); !ok {
 		showMessage()
 	}
-
 	//URL:&url.URL{Scheme:"https", Opaque:"", User:(*url.Userinfo)(nil), Host:"google.com:443", Path:"/search", RawPath:"", ForceQuery:false, RawQuery:"q=golang", Fragment:""}
 	var err error
 	pAppData.URLInfo, err = url.Parse(pReqURI)

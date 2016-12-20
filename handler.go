@@ -22,21 +22,104 @@ func b(s string) *bufio.Reader { return bufio.NewReader(strings.NewReader(s)) }
 func handle() {
 
 	uFlag := make(chan bool)
+	vFlag := make(chan bool)
 	uwg := new(sync.WaitGroup)
+	vwg := new(sync.WaitGroup)
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	http.DefaultTransport.(*http.Transport).MaxIdleConnsPerHost = 10000
 
+	pTunnelURL = make(chan string, pAppData.Concurrent)
+	if false {
+		for k := 0; k < pAppData.Requests; k++ {
+			uwg.Add(1)
+			go process(uFlag, uwg)
+			if k%pAppData.Concurrent == 0 && k > 0 {
+				uwg.Wait()
+			}
+		}
+	}
+	if true {
+		uwg.Add(1)
+		go getTunnel(uFlag, uwg)
+
+		vwg.Add(1)
+		go setTunnel(vFlag, vwg)
+
+		vwg.Wait()
+		close(pTunnelURL)
+	}
+
+	uwg.Wait()
+	close(uFlag)
+	close(vFlag)
+
+}
+
+//setTunnel add the data at the end-of-tunnel
+func setTunnel(doneFlg chan bool, wg *sync.WaitGroup) {
+	go func() {
+		for {
+			select {
+			//wait till doneFlag has value ;-)
+			case <-doneFlg:
+				//done already ;-)
+				wg.Done()
+				return
+			}
+		}
+	}()
+
 	//go parsql.Save(uFlag, uwg)
 	for k := 0; k < pAppData.Requests; k++ {
-		uwg.Add(1)
-		go process(uFlag, uwg, pAppData.Method, pAppData.URL)
-		if k%pAppData.Concurrent == 0 && k > 0 {
-			uwg.Wait()
+		//sig-check
+		if !pStillRunning {
+			log.Println("Signal detected ...")
+			doneFlg <- true
+			return
 		}
+		pTunnelURL <- pAppData.URL
+	}
+
+	//send signal -> DONE
+	doneFlg <- true
+}
+
+//getTunnel process it here
+func getTunnel(doneFlg chan bool, wg *sync.WaitGroup) {
+
+	go func() {
+		for {
+			select {
+			//wait till doneFlag has value ;-)
+			case <-doneFlg:
+				//done already ;-)
+				wg.Done()
+				return
+			}
+		}
+	}()
+
+	uFlag := make(chan bool)
+	uwg := new(sync.WaitGroup)
+	for {
+		_, ok := <-pTunnelURL
+		if !ok {
+			break
+		}
+		//sig-check
+		if !pStillRunning {
+			log.Println("Signal detected ...")
+			break
+		}
+		uwg.Add(1)
+		go process(uFlag, uwg)
+		runtime.Gosched()
 	}
 	uwg.Wait()
 	close(uFlag)
+	//send signal -> DONE
+	doneFlg <- true
 }
 
 //showSummary list all the results statistics
@@ -75,7 +158,7 @@ Statistics :
 }
 
 //process
-func process(doneFlg chan bool, wg *sync.WaitGroup, method, url string) {
+func process(doneFlg chan bool, wg *sync.WaitGroup) {
 
 	go func() {
 		for {
@@ -91,10 +174,10 @@ func process(doneFlg chan bool, wg *sync.WaitGroup, method, url string) {
 	var statuscode int
 
 	t0 := time.Now()
-	if method == "GET" {
-		statuscode = getResultFast(url)
+	if pAppData.Method == "GET" {
+		statuscode = getResultFast(pAppData.URL)
 	} else {
-		statuscode = postResultFast(url, pFormData)
+		statuscode = postResultFast(pAppData.URL, pFormData)
 	}
 	//calc
 	t1 := time.Since(t0)
