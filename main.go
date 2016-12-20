@@ -7,7 +7,8 @@ import (
 )
 
 func main() {
-
+	//timing
+	t0 := time.Now()
 	//might help u
 	defer func() {
 		recvr := recover()
@@ -15,8 +16,6 @@ func main() {
 			fmt.Println("MAIN-RECOV-INIT: ", recvr)
 		}
 	}()
-	//timing
-	t0 := time.Now()
 	//do
 	handle()
 	//stats

@@ -98,7 +98,7 @@ func process(doneFlg chan bool, wg *sync.WaitGroup, method, url string) {
 	}
 	//calc
 	t1 := time.Since(t0)
-	pAppData.Millis += int64(t1.Nanoseconds()/1000) / int64(1000)
+	pAppData.Millis += int64(t1.Nanoseconds() / 1000000)
 
 	//http.StatusText(statuscode)
 	if statuscode != http.StatusOK {
@@ -113,15 +113,8 @@ func process(doneFlg chan bool, wg *sync.WaitGroup, method, url string) {
 //getResult http req a url
 func getResult(url string) int {
 	//client
-	c := &http.Client{Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true, RootCAs: pool},
-		Dial: (&net.Dialer{
-			Timeout: getTimeoutCfg() * time.Second,
-		}).Dial,
-		MaxIdleConnsPerHost: 10000,
-		//DisableKeepAlives: true,
-	},
-	}
+	c := setupHttpClient()
+
 	//init
 	var res *http.Response
 	var err error
@@ -205,15 +198,7 @@ func postResultFast(url string, form *url.Values) int {
 //postResult
 func postResult(uri string, form *url.Values) int {
 	//client
-	c := &http.Client{Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true, RootCAs: pool},
-		Dial: (&net.Dialer{
-			Timeout: getTimeoutCfg() * time.Second,
-		}).Dial,
-		//DisableKeepAlives: true,
-		MaxIdleConnsPerHost: 10000,
-	},
-	}
+	c := setupHttpClient()
 
 	//init
 	var req *http.Request
@@ -254,4 +239,17 @@ func getTimeoutCfg() time.Duration {
 		timeout = time.Duration(pReqTimeout)
 	}
 	return timeout
+}
+
+func setupHttpClient() *http.Client {
+	//client
+	return &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true, RootCAs: pool},
+		Dial: (&net.Dialer{
+			Timeout: getTimeoutCfg() * time.Second,
+		}).Dial,
+		//DisableKeepAlives: true,
+		MaxIdleConnsPerHost: 10000,
+	},
+	}
 }
