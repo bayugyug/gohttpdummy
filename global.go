@@ -34,6 +34,14 @@ type AppData struct {
 	Elapsed    float64        `json:"elapsed,omitempty"`
 }
 
+type ModeRun int
+
+const (
+	_               = iota
+	ByQueue ModeRun = 1
+	ByChanel
+)
+
 var (
 	pLogDir = "."
 	//loggers

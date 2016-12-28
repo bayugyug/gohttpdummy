@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	gor "github.com/gorilla/http"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
@@ -27,19 +28,23 @@ func handle() {
 	vwg := new(sync.WaitGroup)
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	http.DefaultTransport.(*http.Transport).MaxIdleConnsPerHost = 10000
+	http.DefaultTransport.(*http.Transport).MaxIdleConnsPerHost = pAppData.Requests
 
-	pTunnelURL = make(chan string, pAppData.Concurrent)
-	if false {
+	batchno := pAppData.Concurrent
+	if batchno > 10000 {
+		batchno = 10000
+	}
+	pTunnelURL = make(chan string, batchno)
+	if true {
 		for k := 0; k < pAppData.Requests; k++ {
 			uwg.Add(1)
 			go process(uFlag, uwg)
-			if k%pAppData.Concurrent == 0 && k > 0 {
+			if k%batchno == 0 && k > 0 {
 				uwg.Wait()
 			}
 		}
 	}
-	if true {
+	if false {
 		uwg.Add(1)
 		go getTunnel(uFlag, uwg)
 
@@ -102,15 +107,29 @@ func getTunnel(doneFlg chan bool, wg *sync.WaitGroup) {
 
 	uFlag := make(chan bool)
 	uwg := new(sync.WaitGroup)
-	for {
-		_, ok := <-pTunnelURL
-		if !ok {
-			break
+	/*
+		for {
+			//sig-check
+			if !pStillRunning {
+				log.Println("Signal detected ...")
+				doneFlg <- true
+				return
+			}
+			_, ok := <-pTunnelURL
+			if !ok {
+				break
+			}
+			uwg.Add(1)
+			go process(uFlag, uwg)
+			runtime.Gosched()
 		}
+	*/
+	for range pTunnelURL {
 		//sig-check
 		if !pStillRunning {
 			log.Println("Signal detected ...")
-			break
+			doneFlg <- true
+			return
 		}
 		uwg.Add(1)
 		go process(uFlag, uwg)
@@ -196,28 +215,27 @@ func process(doneFlg chan bool, wg *sync.WaitGroup) {
 //getResult http req a url
 func getResult(url string) int {
 	//client
-	c := setupHttpClient()
-
+	//c := setupHttpClient()
+	var p = DummyPool()
 	//init
 	var res *http.Response
 	var err error
 
 	//Get
+
+	c := p.Get()
 	res, err = c.Get(url)
 	//make sure to free-up
 	if res != nil {
 		defer res.Body.Close()
 	}
+	p.Put(c)
 	if err != nil {
 		log.Println("ERROR: getResult:", err)
 		return 0
 	}
 	//get response
-	_, err = ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Println("ERROR: getResult:", err)
-		return 0
-	}
+	io.Copy(ioutil.Discard, res.Body)
 	//give
 	return res.StatusCode
 }
@@ -232,19 +250,12 @@ func getResultFast(url string) int {
 		return 0
 	}
 	if r != nil {
+		io.Copy(ioutil.Discard, r)
 		defer r.Close()
-		/**
-		var body []byte
-			body, err = ioutil.ReadAll(r)
-			if err != nil {
-				log.Println("ERROR: getResultFast:", err)
-				return 0
-			}**/
 	}
 	//give
 	if !statRet.IsSuccess() {
 		log.Println("ERROR: getResultFast: Invalid status code", statRet.String())
-		return 0
 	}
 	return statRet.Code
 }
@@ -261,19 +272,12 @@ func postResultFast(url string, form *url.Values) int {
 		return 0
 	}
 	if r != nil {
+		io.Copy(ioutil.Discard, r)
 		defer r.Close()
-		/**
-		var body []byte
-			body, err = ioutil.ReadAll(r)
-			if err != nil {
-				log.Println("ERROR: getResultFast:", err)
-				return 0
-			}**/
 	}
 	//give
 	if !statRet.IsSuccess() {
 		log.Println("ERROR: postResultFast: Invalid status code", statRet.String())
-		return 0
 	}
 	return statRet.Code
 }
@@ -332,7 +336,29 @@ func setupHttpClient() *http.Client {
 			Timeout: getTimeoutCfg() * time.Second,
 		}).Dial,
 		//DisableKeepAlives: true,
-		MaxIdleConnsPerHost: 10000,
+		MaxIdleConnsPerHost: pAppData.Requests,
 	},
+		Timeout: getTimeoutCfg() * time.Second,
 	}
+}
+
+type dummyPool struct {
+	sync.Pool
+}
+
+func DummyPool() *dummyPool {
+	var m dummyPool
+	m.Pool.New = func() interface{} {
+		return setupHttpClient()
+	}
+	return &m
+}
+
+func (m *dummyPool) Get() *http.Client {
+	return m.Pool.Get().(*http.Client)
+}
+
+func (m *dummyPool) Put(b *http.Client) {
+	// Reset buffer here
+	m.Pool.Put(b)
 }
